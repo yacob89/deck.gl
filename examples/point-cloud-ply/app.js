@@ -7,7 +7,7 @@ import {setParameters} from 'luma.gl';
 
 import {loadBinary, parsePLY, OrbitController} from './utils';
 
-const FILE_PATH = 'https://gnavvy.github.io/point-cloud-example/data/lucy100k.ply';
+const FILE_PATH = 'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/point-cloud-ply/lucy100k.ply';  // eslint-disable-line
 
 class Example extends PureComponent {
   constructor(props) {

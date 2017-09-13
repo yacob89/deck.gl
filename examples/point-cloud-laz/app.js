@@ -10,7 +10,7 @@ import {
   loadLazFile, parseLazData
 } from './utils';
 
-const FILE_PATH = 'https://gnavvy.github.io/point-cloud-example/data/indoor.laz';
+const FILE_PATH = 'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/point-cloud-laz/indoor.laz';  // eslint-disable-line
 
 function normalize(points) {
   let xMin = Infinity;
