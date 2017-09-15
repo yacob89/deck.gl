@@ -10,7 +10,8 @@ import {
   loadLazFile, parseLazData
 } from './utils';
 
-const FILE_PATH = 'https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/point-cloud-laz/indoor.laz';  // eslint-disable-line
+const DATA_REPO = 'https://raw.githubusercontent.com/uber-common/deck.gl-data/master';
+const FILE_PATH = 'examples/point-cloud-laz/indoor.laz';
 
 function normalize(points) {
   let xMin = Infinity;
@@ -80,7 +81,7 @@ class Example extends PureComponent {
     const {points} = this.state;
 
     const skip = 10;
-    loadLazFile(FILE_PATH).then(rawData => {
+    loadLazFile(`${DATA_REPO}/${FILE_PATH}`).then(rawData => {
       parseLazData(rawData, skip, (decoder, progress) => {
         for (let i = 0; i < decoder.pointsCount; i++) {
           const {color, position} = decoder.getPoint(i);
@@ -207,10 +208,16 @@ class Example extends PureComponent {
 
   render() {
     const {width, height} = this.state;
-    return width && height && <div>
-      {this._renderDeckGLCanvas()}
-      {this._renderProgressInfo()}
-    </div>;
+    if (width <= 0 || height <= 0) {
+      return null;
+    }
+
+    return (
+      <div>
+        {this._renderDeckGLCanvas()}
+        {this._renderProgressInfo()}
+      </div>
+    );
   }
 }
 
