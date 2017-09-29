@@ -39,7 +39,19 @@ const float TILE_SIZE = 512.0;
 const float PI = 3.1415926536;
 const float WORLD_SCALE = TILE_SIZE / (PI * 2.0);
 
-//
+// HELPER METHODS
+
+// WebMercatorProjection
+// Projecting positions - non-linear projection: lnglats => unit tile [0-1, 0-1]
+vec2 project_mercator_(vec2 lnglat) {
+  return vec2(
+    radians(lnglat.x) + PI,
+    PI - log(tan_fp32(PI * 0.25 + radians(lnglat.y) * 0.5))
+  );
+}
+
+// PUBLIC API
+
 // Scaling offsets - scales meters to "pixels"
 // Note the scalar version of project_scale is for scaling the z component only
 //
@@ -59,19 +71,8 @@ vec4 project_scale(vec4 meters) {
   return vec4(project_scale(meters.xyz), meters.w);
 }
 
-//
-// Projecting positions - non-linear projection: lnglats => unit tile [0-1, 0-1]
-//
-vec2 project_mercator_(vec2 lnglat) {
-  return vec2(
-    radians(lnglat.x) + PI,
-    PI - log(tan_fp32(PI * 0.25 + radians(lnglat.y) * 0.5))
-  );
-}
-
-//
+// Project a position in given coordinate system to "world" space
 // Projects lnglats (or meter offsets, depending on mode) to pixels
-//
 vec4 project_position(vec4 position) {
   // TODO - why not simply subtract center and fall through?
   if (project_uCoordinateSystem == COORDINATE_SYSTEM_LNG_LAT) {
@@ -87,21 +88,30 @@ vec4 project_position(vec4 position) {
   return project_scale(position_modelspace);
 }
 
+// Project a position in given coordinate system to "world" space
 vec3 project_position(vec3 position) {
   vec4 projected_position = project_position(vec4(position, 1.0));
   return projected_position.xyz;
 }
 
+// Project a position in given coordinate system to "world" space
 vec2 project_position(vec2 position) {
   vec4 projected_position = project_position(vec4(position, 0.0, 1.0));
   return projected_position.xy;
 }
 
-//
-// Projects from "world" coordinates to clip space.
-// Uses project_uViewProjectionMatrix
-//
-vec4 project_to_clipspace(vec4 position) {
+// Project from "world" coordinates to view space.
+vec4 project_to_viewspace(vec4 position) {
+  return project_uViewMatrix * position;
+}
+
+// Project from "world" coordinates to clip space.
+vec4 project_viewspace_to_clipspace(vec4 position) {
+  return project_uProjectionMatrix * position;
+}
+
+// Project from "world" coordinates to clip space.
+vec4 project_worldspace_to_clipspace(vec4 position) {
   if (project_uCoordinateSystem == COORDINATE_SYSTEM_METER_OFFSETS) {
     // Needs to be divided with project_uPixelsPerUnit
     position.w *= project_uPixelsPerUnit.z;
@@ -113,5 +123,10 @@ vec4 project_to_clipspace(vec4 position) {
 vec4 project_pixel_to_clipspace(vec2 pixels) {
   vec2 offset = pixels / project_uViewportSize * project_uDevicePixelRatio;
   return vec4(offset * project_uFocalDistance, 0.0, 0.0);
+}
+
+// 
+vec4 project_to_clipspace(vec4 position) {
+  return project_worldspace_to_clipspace(position);
 }
 `;
