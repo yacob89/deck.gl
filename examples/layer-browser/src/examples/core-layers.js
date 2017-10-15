@@ -18,6 +18,8 @@ import {
   PathLayer
 } from 'deck.gl';
 
+import {GL} from 'luma.gl';
+
 // Demonstrate immutable support
 import {experimental} from 'deck.gl';
 const {get} = experimental;
@@ -175,7 +177,11 @@ const ScatterplotLayerExample = {
     pickable: true,
     radiusScale: 30,
     radiusMinPixels: 1,
-    radiusMaxPixels: 30
+    radiusMaxPixels: 30,
+    parameters: {
+      blend: true,
+      blendEquation: GL.MAX
+    }
   }
 };
 
