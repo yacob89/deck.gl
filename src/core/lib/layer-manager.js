@@ -149,19 +149,28 @@ export default class LayerManager {
   setViewports(viewports) {
     viewports = flatten(viewports, {filter: Boolean});
 
-    // Viewports are "immutable", so we can shallow compare
+    const newViewports = [];
+    viewports.forEach((viewportOrDescriptor) => {
+      if (viewportOrDescriptor instanceof Viewport) {
+        newViewports.push(viewportOrDescriptor);
+      } else {
+        const ViewportType = viewportOrDescriptor.type;
+        newViewports.push(new ViewportType(...viewportOrDescriptor));
+      }
+    });
     const oldViewports = this.context.viewports;
-    const viewportsChanged = viewports.length !== oldViewports.length ||
-      viewports.some((_, i) => viewports[i] !== oldViewports[i]);
+    // TODO: this will be true always if descriptors are used as we create new object
+    const viewportsChanged = newViewports.length !== oldViewports.length ||
+      newViewports.some((_, i) => newViewports[i] !== oldViewports[i]);
 
     if (viewportsChanged) {
       this._needsRedraw = 'Viewport changed';
 
       // Need to ensure one viewport is activated
-      const viewport = viewports[0];
+      const viewport = newViewports[0];
       assert(viewport instanceof Viewport, 'Invalid viewport');
 
-      this.context.viewports = viewports;
+      this.context.viewports = newViewports;
       this._activateViewport(viewport);
     }
   }
