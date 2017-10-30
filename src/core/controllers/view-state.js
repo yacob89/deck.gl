@@ -17,6 +17,11 @@ const defaultState = {
 
 /* Helpers */
 
+function mod(value, divisor) {
+  const modulus = value % divisor;
+  return modulus < 0 ? divisor + modulus : modulus;
+}
+
 function ensureFinite(value, fallbackValue) {
   return Number.isFinite(value) ? value : fallbackValue;
 }
@@ -85,7 +90,25 @@ export default class ViewState {
 
   // Redefined by subclass
   // Apply any constraints (mathematical or defined by _viewportProps) to map state
-  _applyConstraints(props) {
+  // Apply any constraints (mathematical or defined by _viewportProps) to map state
+  _applyConstraints(props, constraints) {
+    // read constraints directly from props if not supplied
+    constraints = constraints || props.constraints || props;
+    // Normalize degrees
+    props.longitude = mod(props.longitude + 180, 360) - 180;
+    props.bearing = mod(props.bearing + 180, 360) - 180;
+
+    // Ensure zoom is within specified range
+    const {maxZoom, minZoom, zoom} = props;
+    props.zoom = zoom > maxZoom ? maxZoom : zoom;
+    props.zoom = zoom < minZoom ? minZoom : zoom;
+
+    // Ensure pitch is within specified range
+    const {maxPitch, minPitch, pitch} = props;
+
+    props.pitch = pitch > maxPitch ? maxPitch : pitch;
+    props.pitch = pitch < minPitch ? minPitch : pitch;
+
     return props;
   }
 }
