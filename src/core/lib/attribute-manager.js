@@ -58,14 +58,33 @@ export function glArrayFromType(glType, {clamped = true} = {}) {
 
 // Default loggers
 const logFunctions = {
-  onUpdateStart: ({level, id, numInstances}) => {
-    log.time(level, `Updated attributes for ${numInstances} instances in ${id} in`);
-  },
+  savedMessages: null,
+  timeStart: null,
+
   onLog: ({level, message}) => {
     log.log(level, message);
   },
+  onUpdateStart: ({level, id, numInstances}) => {
+    logFunctions.savedMessages = [];
+    logFunctions.timeStart = new Date();
+  },
+  onUpdate: ({level, message}) => {
+    if (logFunctions.savedMessages) {
+      logFunctions.savedMessages.push(message);
+    }
+  },
   onUpdateEnd: ({level, id, numInstances}) => {
-    log.timeEnd(level, `Updated attributes for ${numInstances} instances in ${id} in`);
+    const timeMs = Math.round(new Date() - logFunctions.timeStart);
+    const time = `${timeMs}ms`;
+    log.group(level,
+      `Updated attributes for ${numInstances} instances in ${id} in ${time}`,
+      {collapsed: true}
+    );
+    for (const message of logFunctions.savedMessages) {
+      log.log(level, message);
+    }
+    log.groupEnd(level, `Updated attributes for ${numInstances} instances in ${id} in ${time}`);
+    logFunctions.savedMessages = null;
   }
 };
 
@@ -200,25 +219,12 @@ export default class AttributeManager {
    * @param {string} triggerName: attribute or accessor name
    */
   invalidate(triggerName) {
-    const {attributes, updateTriggers} = this;
-    const attributesToUpdate = updateTriggers[triggerName];
+    const invalidatedAttributes = this._invalidateTrigger(triggerName);
 
-    if (!attributesToUpdate) {
-      let message =
-        `invalidating non-existent attribute ${triggerName} for ${this.id}\n`;
-      message += `Valid attributes: ${Object.keys(attributes).join(', ')}`;
-      assert(attributesToUpdate, message);
-    }
-    attributesToUpdate.forEach(name => {
-      const attribute = attributes[name];
-      if (attribute) {
-        attribute.needsUpdate = true;
-      }
-    });
     // For performance tuning
     logFunctions.onLog({
       level: LOG_DETAIL_PRIORITY,
-      message: `invalidated attribute ${attributesToUpdate} for ${this.id}`,
+      message: `invalidated attributes ${invalidatedAttributes} (${triggerName}) for ${this.id}`,
       id: this.identifier
     });
   }
@@ -226,8 +232,34 @@ export default class AttributeManager {
   invalidateAll() {
     const {attributes} = this;
     for (const attributeName in attributes) {
-      this.invalidate(attributeName);
+      this._invalidateTrigger(attributeName);
     }
+
+    // For performance tuning
+    logFunctions.onLog({
+      level: LOG_DETAIL_PRIORITY,
+      message: `invalidated all attributes for ${this.id}`,
+      id: this.identifier
+    });
+  }
+
+  _invalidateTrigger(triggerName) {
+    const {attributes, updateTriggers} = this;
+    const invalidatedAttributes = updateTriggers[triggerName];
+
+    if (!invalidatedAttributes) {
+      let message =
+        `invalidating non-existent trigger ${triggerName} for ${this.id}\n`;
+      message += `Valid triggers: ${Object.keys(attributes).join(', ')}`;
+      log.warn(message, invalidatedAttributes);
+    }
+    invalidatedAttributes.forEach(name => {
+      const attribute = attributes[name];
+      if (attribute) {
+        attribute.needsUpdate = true;
+      }
+    });
+    return invalidatedAttributes;
   }
 
   /**
@@ -422,7 +454,6 @@ export default class AttributeManager {
           }
           triggers[accessorName].push(attributeName);
         });
-
       }
     }
 
@@ -570,13 +601,10 @@ export default class AttributeManager {
 
   _updateBuffer({attribute, attributeName, numInstances, data, props, context}) {
     const {update, accessor} = attribute;
+
+    const timeStart = new Date();
     if (update) {
       // Custom updater - typically for non-instanced layers
-      logFunctions.onLog({
-        level: LOG_DETAIL_PRIORITY,
-        message: `${this.id}:${attributeName} updating ${numInstances}`,
-        id: this.id
-      });
       update.call(context, attribute, {data, props, numInstances});
       this._checkAttributeArray(attribute, attributeName);
     } else if (accessor) {
@@ -584,12 +612,19 @@ export default class AttributeManager {
       this._updateBufferViaStandardAccessor({attribute, data, props});
       this._checkAttributeArray(attribute, attributeName);
     } else {
-      logFunctions.onLog({
+      logFunctions.onUpdate({
         level: LOG_DETAIL_PRIORITY,
         message: `${this.id}:${attributeName} missing update function`,
         id: this.id
       });
     }
+    const timeMs = Math.round(new Date() - timeStart);
+    const time = `${timeMs}ms`;
+    logFunctions.onUpdate({
+      level: LOG_DETAIL_PRIORITY,
+      message: `${this.id}:${attributeName} updated ${numInstances} ${time}`,
+      id: this.id
+    });
 
     attribute.needsUpdate = false;
     attribute.changed = true;
