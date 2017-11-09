@@ -69,8 +69,8 @@ export default class CompositeLayer extends Layer {
   // Called by layer manager to render sublayers
   _renderLayers(updateParams) {
     // TODO - won't updateLayer also be called? Avoid "double diffing"
-    const {oldProps, props} = updateParams;
-    this.diffProps(oldProps, props);
+    const {props, oldProps} = updateParams;
+    this.diffProps(props, oldProps);
 
     if (this.state.oldSubLayers && !this.shouldUpdateState(updateParams)) {
       log.log(2, `Composite layer reused sublayers ${this}`, this.state.oldSubLayers);

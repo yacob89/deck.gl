@@ -407,8 +407,6 @@ export default class Layer {
   // Called by layer manager
   // if this layer is new (not matched with an existing layer) oldProps will be empty object
   updateLayer({oldProps = {}, oldContext = {}}) {
-    this.oldProps = oldProps;
-
     this.diffProps(this.props, oldProps);
 
     // TODO - check change flags and return if no change?
@@ -567,10 +565,10 @@ export default class Layer {
   // Compares the layers props with old props from a matched older layer
   // and extracts change flags that describe what has change so that state
   // can be update correctly with minimal effort
-  diffProps(oldProps, newProps) {
-    let changeFlags = diffProps(oldProps, newProps, this._onUpdateTriggered.bind(this));
-    changeFlags = this.setChangeFlags(changeFlags);
-    return changeFlags;
+  diffProps(newProps, oldProps) {
+    const changeFlags = diffProps(newProps, oldProps, this._onUpdateTriggered.bind(this));
+    this.oldProps = oldProps;
+    return this.setChangeFlags(changeFlags);
   }
 
   // PRIVATE METHODS

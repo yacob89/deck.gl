@@ -155,8 +155,8 @@ test('Layer#diffProps', t => {
 
   const spy = makeSpy(AttributeManager.prototype, 'invalidate');
   diff = layer.diffProps(
-    layer.props,
-    Object.assign({}, LAYER_PROPS, {updateTriggers: {time: {version: 0}}})
+    Object.assign({}, LAYER_PROPS, {updateTriggers: {time: {version: 0}}}),
+    layer.props
   );
   t.ok(spy.called, 'updateTriggers fired');
   spy.restore();
