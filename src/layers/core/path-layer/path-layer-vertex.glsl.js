@@ -65,8 +65,8 @@ vec3 lineJoin(vec3 prevPoint, vec3 currPoint, vec3 nextPoint) {
 
   float lenA = length(deltaA);
   float lenB = length(deltaB);
-  vec2 dirA = lenA > 0. ? normalize(deltaA) : vec2(1.0, 0.0);
-  vec2 dirB = lenB > 0. ? normalize(deltaB) : vec2(1.0, 0.0);
+  vec2 dirA = lenA > 0.1 ? normalize(deltaA) : vec2(0.0, 0.0);
+  vec2 dirB = lenB > 0.1 ? normalize(deltaB) : vec2(0.0, 0.0);
   vec2 perpA = vec2(-dirA.y, dirA.x);
   vec2 perpB = vec2(-dirB.y, dirB.x);
 
@@ -89,7 +89,7 @@ vec3 lineJoin(vec3 prevPoint, vec3 currPoint, vec3 nextPoint) {
   // 0: center
   // 1: outside (bigger side of the angle)
   float cornerPosition = mix(
-    flipIfTrue(turnsRight == (positions.y > 0.0)),
+    flipIfTrue(turnsRight == (positions.y > 0.5)),
     0.0,
     positions.z
   );
@@ -114,7 +114,7 @@ vec3 lineJoin(vec3 prevPoint, vec3 currPoint, vec3 nextPoint) {
     positions.y,
     mix(
       flipIfTrue(turnsRight),
-      positions.y * flipIfTrue(turnsRight == (positions.x == 1.)),
+      positions.y * flipIfTrue(turnsRight == (positions.x > 0.5)),
       cornerPosition
     ),
     step(0.0, cornerPosition)
@@ -159,12 +159,10 @@ void main() {
   vec4 pickingColor = vec4(instancePickingColors, 255.) / 255.;
   vColor = mix(color, pickingColor, renderPickingBuffer);
 
-  float isEnd = positions.x;
-
   vec3 prevPosition = instanceStartPositions;
   prevPosition = project_position(prevPosition);
 
-  vec3 currPosition = mix(instanceStartPositions, instanceEndPositions, isEnd);
+  vec3 currPosition = mix(instanceStartPositions, instanceEndPositions, positions.x);
   currPosition = project_position(currPosition);
 
   vec3 nextPosition = instanceEndPositions;
