@@ -161,13 +161,13 @@ void main() {
 
   float isEnd = positions.x;
 
-  vec3 prevPosition = mix(-instanceLeftDeltas, vec3(0.0), isEnd) + instanceStartPositions;
+  vec3 prevPosition = instanceStartPositions;
   prevPosition = project_position(prevPosition);
 
   vec3 currPosition = mix(instanceStartPositions, instanceEndPositions, isEnd);
   currPosition = project_position(currPosition);
 
-  vec3 nextPosition = mix(vec3(0.0), instanceRightDeltas, isEnd) + instanceEndPositions;
+  vec3 nextPosition = instanceEndPositions;
   nextPosition = project_position(nextPosition);
 
   vec3 pos;

@@ -13,7 +13,8 @@ import {
 
   GeoJsonLayer,
   PolygonLayer,
-  PathLayer
+  PathLayer,
+  COORDINATE_SYSTEM
 } from 'deck.gl';
 
 // Demonstrate immutable support
@@ -130,6 +131,29 @@ const PathLayerExample = {
     getWidth: f => 10,
     widthMinPixels: 1,
     pickable: true
+  }
+};
+
+const PathMarkerExampleMeterData = new Array(50).fill(true).map(
+f => ({
+path: [   [Math.random() * 9000, Math.random() * 30000],[Math.random() * 9000, Math.random() * 30000]]}));
+
+const PathLayerExampleXXXX = {
+  layer: PathLayer,
+  getData: () => PathMarkerExampleMeterData,
+  props: {
+    id: 'pathLayerdxfdfdfd',
+    opacity: 1.0,
+    getPath: f => f.path,
+    getColor: f => [0, 0, 255],
+    getWidth: f => 15,
+    widthMinPixels: 1,
+    pickable: false,
+    projectionMode: COORDINATE_SYSTEM.METER_OFFSETS,
+    positionOrigin: [-122.389977, 37.615223],
+    projectionOrigin: [-122.389977, 37.615223],
+    coordinateSystem: COORDINATE_SYSTEM.METER_OFFSETS,
+    coordinateOrigin: [-122.389977, 37.615223]
   }
 };
 
@@ -303,6 +327,7 @@ export default {
     'GeoJsonLayer (Extruded)': GeoJsonLayerExtrudedExample,
     PolygonLayer: PolygonLayerExample,
     PathLayer: PathLayerExample,
+    PathLayerExampleXXXX: PathLayerExampleXXXX,
     ScatterplotLayer: ScatterplotLayerExample,
     ArcLayer: ArcLayerExample,
     LineLayer: LineLayerExample,

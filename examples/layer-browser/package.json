@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "webpack-dev-server --progress --hot --open",
-    "start-local": "webpack-dev-server --env.local --progress --hot --open",
+    "start-local": "webpack-dev-server --env.local --progress --hot --host 0.0.0.0",
     "build": "webpack app bundle.js --env.local --display-error-details"
   },
   "dependencies": {

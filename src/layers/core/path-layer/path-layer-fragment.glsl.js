@@ -33,13 +33,14 @@ varying vec2 vCornerOffset;
 varying float vMiterLength;
 
 void main(void) {
+  gl_FragColor = vec4(1,0,0,1);
+  
   // if joint is rounded, test distance from the corner
   if (jointType > 0.0 && vMiterLength > 0.0 && length(vCornerOffset) > 1.0) {
-    discard;
+    gl_FragColor = vec4(0,0,1,1);
   }
   if (jointType == 0.0 && vMiterLength > miterLimit) {
-    discard;
+    gl_FragColor = vec4(0,1,0,1);
   }
-  gl_FragColor = vColor;
 }
 `;
