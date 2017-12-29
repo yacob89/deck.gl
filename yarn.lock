@@ -2935,9 +2935,9 @@ lru-cache@^4.0.1:
     pseudomap "^1.0.2"
     yallist "^2.1.2"
 
-luma.gl@>=5.0.0-beta.1:
-  version "5.0.0-beta.1"
-  resolved "https://registry.yarnpkg.com/luma.gl/-/luma.gl-5.0.0-beta.1.tgz#7a0c6dda99feb774e94d6686a1c0734afbce28de"
+luma.gl@^5.0.0:
+  version "5.0.0"
+  resolved "https://unpm.uberinternal.com/luma.gl/-/luma.gl-5.0.0.tgz#3eea13b3f06d7f0003a968bf94410df0d0d39beb"
   dependencies:
     gl-mat4 "^1.1.4"
     gl-quat "^1.0.0"
@@ -4780,9 +4780,9 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-viewport-mercator-project@^5.0.0-alpha.1:
-  version "5.0.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/viewport-mercator-project/-/viewport-mercator-project-5.0.0-alpha.1.tgz#637b849517f4fc3898028a89210d244b412011e0"
+viewport-mercator-project@^5.0.0-alpha.2:
+  version "5.0.0-alpha.2"
+  resolved "https://unpm.uberinternal.com/viewport-mercator-project/-/viewport-mercator-project-5.0.0-alpha.2.tgz#5282e4d55c5886a15b9a091322704f326db003e4"
   dependencies:
     math.gl "^1.0.0-alpha.7"
 
