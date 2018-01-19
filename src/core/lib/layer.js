@@ -19,6 +19,7 @@
 // THE SOFTWARE.
 
 /* global window */
+/* global fetch */
 import {COORDINATE_SYSTEM} from './constants';
 import AttributeManager from './attribute-manager';
 import {removeLayerInSeer} from './seer-integration';
@@ -34,11 +35,15 @@ import LayerState from './layer-state';
 
 const LOG_PRIORITY_UPDATE = 1;
 const EMPTY_PROPS = Object.freeze({});
+const EMPTY_ARRAY = Object.freeze([]);
 const noop = () => {};
 
 const defaultProps = {
   // data: Special handling for null, see below
+  data: {type: 'data', value: EMPTY_ARRAY, async: true},
   dataComparator: null,
+  dataTransform: data => data,
+  fetch: url => fetch(url).then(response => response.json()),
   updateTriggers: {}, // Update triggers: a core change detection mechanism in deck.gl
   numInstances: undefined,
 
@@ -66,7 +71,7 @@ const defaultProps = {
   // Selection/Highlighting
   highlightedObjectIndex: null,
   autoHighlight: false,
-  highlightColor: [0, 0, 128, 128]
+  highlightColor: {type: 'color', value: [0, 0, 128, 128]}
 };
 
 let counter = 0;
@@ -400,6 +405,7 @@ export default class Layer {
 
     // initializeState callback tends to clear state
     this.setChangeFlags({dataChanged: true, propsChanged: true, viewportChanged: true});
+    this._loadData();
 
     this._updateState(this._getUpdateParams());
 
@@ -555,6 +561,10 @@ export default class Layer {
     changeFlags.propsOrDataChanged = changeFlags.propsOrDataChanged || propsOrDataChanged;
     changeFlags.somethingChanged =
       changeFlags.somethingChanged || propsOrDataChanged || flags.viewportChanged;
+
+    if (propsOrDataChanged) {
+      this.context.layerManager.scheduleLayerUpdate(this);
+    }
   }
   /* eslint-enable complexity */
 
@@ -599,7 +609,42 @@ ${flags.viewportChanged ? 'viewport' : ''}\
       }
     }
 
+    if (changeFlags.dataChanged) {
+      if (this._loadData()) {
+        // Postpone data changed flag until loaded
+        changeFlags.dataChanged = false;
+      }
+    }
+
     return this.setChangeFlags(changeFlags);
+  }
+
+  _loadData() {
+    const {data, fetch} = this.props;
+    switch (typeof data) {
+      case 'string':
+        const url = data;
+        if (url !== this.internalState.lastUrl) {
+          // Make sure pros.data returns an Array, not a string
+
+          this.internalState.data = this.internalState.data || [];
+          this.internalState.lastUrl = url;
+
+          // Load the data
+          const promise = fetch(url).then(loadedData => {
+            this.internalState.data = loadedData;
+            this.setChangeFlags({dataChanged: true});
+          });
+
+          this.internalState.loadPromise = promise;
+          return true;
+        }
+        break;
+      default:
+        // Makes getData() return props.data
+        this.internalState.data = null;
+    }
+    return false;
   }
 
   // PRIVATE METHODS
@@ -667,6 +712,9 @@ ${flags.viewportChanged ? 'viewport' : ''}\
     this.state = {};
     // TODO deprecated, for backwards compatibility with older layers
     this.state.attributeManager = this.getAttributeManager();
+
+    // Ensure any async props are updated
+    this.internalState.updateAsyncProps(this.props);
   }
 
   // Called by layer manager to transfer state from an old layer
@@ -683,6 +731,9 @@ ${flags.viewportChanged ? 'viewport' : ''}\
 
     // Keep a temporary ref to the old props, for prop comparison
     this.oldProps = props;
+
+    // Ensure any async props are updated
+    this.internalState.updateAsyncProps(this.props);
 
     // Update model layer reference
     for (const model of this.getModels()) {

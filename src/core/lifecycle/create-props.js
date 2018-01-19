@@ -2,7 +2,11 @@ import {applyPropOverrides} from '../lib/seer-integration';
 import log from '../utils/log';
 import {parsePropTypes} from './prop-types';
 
-export const EMPTY_ARRAY = Object.freeze([]);
+// const ASYNC_PROPS = {
+//   // Accept null as data - otherwise apps and layers need to add ugly checks
+//   // Use constant fallback so that data change is not triggered
+//   data: EMPTY_ARRAY
+// };
 
 // Create a property object
 export function createProps() {
@@ -14,10 +18,12 @@ export function createProps() {
   // Create a new prop object with  default props object in prototype chain
   const newProps = Object.create(defaultProps, {
     _layer: {
+      // Back pointer to the owning layer
       enumerable: false,
       value: layer
     },
-    _asyncProps: {
+    _rewritableProps: {
+      // Actual, supplied values for async props, cannot be shown directly to layers
       enumerable: false,
       value: {}
     }
@@ -27,7 +33,6 @@ export function createProps() {
   for (let i = 0; i < arguments.length; ++i) {
     Object.assign(newProps, arguments[i]);
   }
-  newProps.data = newProps.data || EMPTY_ARRAY;
 
   // SEER: Apply any overrides from the seer debug extension if it is active
   applyPropOverrides(newProps);
@@ -37,6 +42,20 @@ export function createProps() {
 
   return newProps;
 }
+
+// function setAsyncProps(newProps, props, asyncProps) {
+//   for (const propName in asyncProps) {
+//     let value;
+//     if (propName in props) {
+//       value = props[propName];
+//       delete props[propName];
+//     } else {
+//       value = asyncProps[propName];
+//     }
+//     newProps._rewritableProps[propName] = value;
+//   }
+//   return props;
+// }
 
 // Helper methods
 
@@ -106,13 +125,16 @@ function buildPropDefs(layerClass) {
   return {propTypes, defaultProps};
 }
 
+// Builds a pre-merged default props object that layer props can inherit from
 function buildDefaultProps(props, parentProps, propTypes, layerClass) {
   const defaultProps = Object.create(null);
 
   Object.assign(defaultProps, parentProps, props);
 
   const descriptors = {};
+  const rewritablePropDefaults = {};
 
+  // Avoid freezing `id` prop
   const id = getLayerName(layerClass);
   delete props.id;
 
@@ -121,8 +143,41 @@ function buildDefaultProps(props, parentProps, propTypes, layerClass) {
       configurable: false,
       writable: true,
       value: id
+    },
+    _rewritablePropDefaults: {
+      // Actual, supplied values for async props, cannot be shown directly to layers
+      enumerable: false,
+      value: rewritablePropDefaults
     }
   });
+
+  // Move async props into shadow values
+  for (const prop in propTypes) {
+    if (propTypes[prop].async) {
+      const defaultValue = defaultProps[prop];
+      rewritablePropDefaults[prop] = defaultValue;
+      Object.assign(descriptors, {
+        [prop]: {
+          configurable: false,
+          // Save the provided value for async props in a special map
+          set(value) {
+            this._rewritableProps[prop] = value;
+          },
+          // Only the layer's state knows the true value of async prop
+          get() {
+            const state = this._layer && this._layer.internalState;
+            if (state) {
+              return state.getAsyncProp(prop, this);
+            }
+            if (this._rewritableProps) {
+              return this._rewritableProps[prop];
+            }
+            return defaultValue;
+          }
+        }
+      });
+    }
+  }
 
   Object.defineProperties(defaultProps, descriptors);
 
