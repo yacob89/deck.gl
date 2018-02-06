@@ -93,10 +93,6 @@ export default class LayerManager {
     this._needsRedraw = 'Initial render';
     this._needsUpdate = false;
 
-    this._isUpdating = false;
-    this._scheduledUpdateTimer = null;
-    this._scheduledLayer = null;
-
     // Event handling
     this._pickingRadius = 0;
 
@@ -269,7 +265,6 @@ export default class LayerManager {
       oldLayers: this.prevLayers,
       newLayers
     });
-    this._isUpdating = false;
 
     this.layers = generatedLayers;
 
@@ -378,27 +373,6 @@ export default class LayerManager {
     log.deprecated('setViewport', 'setViews');
     this.setViews([viewport]);
     return this;
-  }
-
-  //
-  // METHODS FOR LAYERS
-  //
-
-  // Schedules an async update of the layer state
-  // Use when async props or assets have loaded
-  scheduleLayerUpdate(layer) {
-    if (!this._isUpdating && !this._scheduledUpdateTimer) {
-      this._scheduledUpdateTimer = setTimeout(this._scheduledUpdate.bind(this), 0);
-      this._scheduledLayer = layer;
-      // TODO when updating cancel any outstanding update timers
-    }
-  }
-
-  // Handles an async update of the layer state
-  _scheduledUpdate() {
-    log.log(0, `Async layer update ${this._scheduledLayer}`);
-    this.setNeedsRedraw('Async layer update');
-    this.setLayers([...this.layers]);
   }
 
   //
