@@ -563,7 +563,7 @@ export default class Layer {
       changeFlags.somethingChanged || propsOrDataChanged || flags.viewportChanged;
 
     if (propsOrDataChanged) {
-      this.context.layerManager.scheduleLayerUpdate(this);
+      this.context.layerManager.setNeedsUpdate(String(this));
     }
   }
   /* eslint-enable complexity */
