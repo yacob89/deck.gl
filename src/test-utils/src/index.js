@@ -2,7 +2,7 @@ export {toLowPrecision} from './utils/precision';
 export {default as spy} from './utils/spy';
 export {default as makeSpy} from './utils/spy';
 export {default as gl} from './utils/setup-gl';
-export * from '../luma.gl/gpgpu';
+export * from './luma/gpgpu';
 
 // Basic utility for rendering multiple scenes (could go into "deck.gl/core")
 export {default as SceneRenderer} from './scene-renderer';

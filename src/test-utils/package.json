@@ -33,7 +33,7 @@
     "test": "npm run lint && npm run build && npm run test-node",
     "test-fast": "npm run test-node",
     "test-cover": "NODE_ENV=test tape -r babel-register test/node.js && nyc report",
-    "test-node": "node test/node.js",
+    "test-node": "node test/node-test.js",
     "test-dist": "node test/node-dist.js",
     "test-browser": "webpack-dev-server --env.test --progress --hot --open",
     "bench": "node test/bench/node.js",
@@ -41,8 +41,8 @@
     "test-rendering": "(cd test/render && webpack-dev-server --config webpack.config.test-rendering.js --progress --hot --open)"
   },
   "dependencies": {
-    "deck.gl": "^5.0.0",
-    "luma.gl": "^5.0.0",
+    "deck.gl": "5.1.0-beta.3",
+    "luma.gl": "5.1.0-beta.2",
     "ndarray": "^1.0.18",
     "save-pixels": "^2.3.2",
     "canvas-to-blob": "0.0.0",
