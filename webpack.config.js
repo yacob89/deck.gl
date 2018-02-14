@@ -97,47 +97,52 @@ const BROWSER_CONFIG = {
   plugins: []
 };
 
-const TEST_BROWSER_CONFIG = Object.assign({}, BROWSER_CONFIG, {
-  // Bundle the tests for running in the browser
-  entry: {
-    'test-browser': resolve('./test/browser.js')
-  }
-});
+const WEBPACK_ENVS = {
+  // Bundle the standard unit tests for running in the browser
+  'test': Object.assign({}, BROWSER_CONFIG, {
+    entry: {
+      'test-browser': resolve('./test/browser.js')
+    }
+  }),
 
-const RENDER_BROWSER_CONFIG = Object.assign({}, BROWSER_CONFIG, {
-  // Bundle the tests for running in the browser
-  entry: {
-    'test-browser': resolve('./test/render/test-rendering.js')
-  }
-});
+  // Bundle the render tests for running in the browser
+  'render': Object.assign({}, BROWSER_CONFIG, {
+    entry: {
+      'test-browser': resolve('.(/test/render/test-r)endering.js')
+    }
+  }),
 
-// TODO - remove this target once above target is solid
-const RENDER_REACT_BROWSER_CONFIG = Object.assign({}, BROWSER_CONFIG, {
-  // Bundle the tests for running in the browser
-  entry: {
-    'test-browser': resolve('./test/render/old/test-rendering.react.js')
-  }
-});
+  // Bundle the react render tests for running in the browser
+  'render-react': Object.assign({}, BROWSER_CONFIG, {
+    entry: {
+      'test-browser': resolve('./test/render/old/test-rendering.react.js')
+    }
+  }),
 
-const BENCH_BROWSER_CONFIG = Object.assign({}, BROWSER_CONFIG, {
-  entry: {
-    'test-browser': resolve('./test/bench/browser.js')
-  }
-});
+  // Bundle the benchmark tests for running in the browser
+  'bench': Object.assign({}, BROWSER_CONFIG, {
+    entry: {
+      'test-browser': resolve('./test/bench/browser.js')
+    }
+  }),
+
+  // Bundle a "library"
+  'library': LIBRARY_BUNDLE_CONFIG
+};
 
 module.exports = env => {
   env = env || {};
   if (env.test) {
-    return TEST_BROWSER_CONFIG;
+    return WEBPACK_ENVS.test;
   }
   if (env.render) {
-    return RENDER_BROWSER_CONFIG;
+    return WEBPACK_ENVS.render;
   }
   if (env['render-react']) {
-    return RENDER_REACT_BROWSER_CONFIG;
+    return WEBPACK_ENVS['render-react'];
   }
   if (env.bench) {
-    return BENCH_BROWSER_CONFIG;
+    return WEBPACK_ENVS.bench;
   }
-  return LIBRARY_BUNDLE_CONFIG;
+  return WEBPACK_ENVS.library;
 };
