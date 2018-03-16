@@ -50,6 +50,9 @@
     "bench": "node test/start.js bench",
     "bench-browser": "webpack-dev-server --env.bench --progress --hot --open"
   },
+  "pre-push": [
+    "test-examples"
+  ],
   "dependencies": {
     "d3-hexbin": "^0.2.1",
     "earcut": "^2.0.6",
@@ -84,6 +87,7 @@
     "png.js": "^0.1.1",
     "pixelmatch": "^4.0.2",
     "pre-commit": "^1.2.2",
+    "pre-push": "^0.1.1",
     "prettier": "^1.9.2",
     "prettier-check": "^2.0.0",
     "puppeteer": "^1.0.0",
