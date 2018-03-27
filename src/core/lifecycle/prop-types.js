@@ -2,11 +2,15 @@ import assert from 'assert';
 
 const TYPE_DEFINITIONS = {
   boolean: {
+    // {type: 'boolean', value: boolean}
+    // short hand: 'boolean' -> {value: false, type: 'boolean'}
     validate(value, propType) {
       return true;
     }
   },
   number: {
+    // {type: 'number', value: number, min: number, max: number}
+    // short hand: 'number' -> {value: 0 or NaN?, type: 'number'}
     validateType(value, propType) {
       return (
         'value' in propType &&
@@ -21,6 +25,67 @@ const TYPE_DEFINITIONS = {
         (!('min' in propType) || value >= propType.min)
       );
     }
+  },
+  object: {
+    // { type: 'object', properties: {...} }
+    // short hand: 'object' -> { properties: {}, type: 'object' }
+  },
+  array: {
+    // { type: 'array', element: 'number', length: number }
+    // short hand: 'array' -> { value: [], type: 'array', element: 'unknown', length: 0 }
+  },
+  'fixed-array': {
+    // {type: 'fixed-array', shape: ['number', 'number', ...], value: [number, number], min: [number, number], max: [number, number]}
+  },
+  position: {
+    // {type: 'position', dimensions: number}
+    /*
+      validate:
+      min: 0
+    */
+  },
+  color: {
+    // {type: 'color', model: 'rgb', value: [number, number, number] }
+    // {type: 'color', model: 'rgba', value: [number, number, number, number] }
+    // {type: 'color', model: 'hex', value: string }
+    /*
+      validate:
+      min: 0
+      max: 255
+    */
+  },
+  function: {
+    // {type: 'function', value: (number) => {}, args: ['number'], return: 'void'}
+    // short hand map: 'function' -> { value: () => {}, type: 'function', args: [], return: 'void'}
+  }
+};
+
+export const defaultDataArrayType = { value: [], type: 'array', element: defaultDataType };
+
+export const defaultDataType = {
+  type: 'object',
+  properties: {
+    position: { type: 'position', dimensions: 3 },
+    radius: { type: 'number', min: 0 },
+    color: { type: 'color', model: 'rgba' },
+    strokeWidth: { type: 'number', min: 0 }
+  }
+};
+
+const numberOfLights = 1;
+
+export const defaultLightSettingsType = {
+  type: 'object',
+  properties: {
+    numberOfLights: { type: 'number', value: numberOfLights, min: 0, max: 16 },
+    lightsPosition: { type: 'array', element: 'number', length: numberOfLights * 3 },
+    lightsStrength: { type: 'array', element: 'number', length: numberOfLights * 2 },
+    coordinateSystem: { type: 'number', value: COORDINATE_SYSTEM.LNGLAT },
+    coordinateOrigin: { type: 'position', dimensions: 3, value: [0, 0, 0] },
+    modelMatrix: { type: 'number', value: null },
+    ambientRatio: { type: 'number', value: 0.05, min: 0, max: 1 },
+    diffuseRatio: { type: 'number', value: 0.6, min: 0, max: 1 },
+    specularRatio: { type: 'number', value: 0.8, min: 0, max: 1 }
   }
 };
 
@@ -37,6 +102,7 @@ export function parsePropTypes(propDefs) {
 
 // Parses one property definition entry. Either contains:
 // * a valid prop type object ({type, ...})
+// * a valid prop type string ('number')
 // * or just a default value, in which case type and name inference is used
 function parsePropType(name, propDef) {
   switch (getTypeOf(propDef)) {

@@ -18,8 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {CompositeLayer, experimental} from '../../core';
-const {BinSorter, defaultColorRange, getQuantizeScale, getLinearScale} = experimental;
+import {CompositeLayer, experimental, COORDINATE_SYSTEM} from '../../core';
+const {BinSorter, defaultColorRange, getQuantizeScale, getLinearScale, defaultLightSettingsType, defaultDataType, defaultDataArrayType} = experimental;
 
 import GridCellLayer from '../grid-cell-layer/grid-cell-layer';
 
@@ -28,32 +28,50 @@ import {pointToDensityGridData} from './grid-aggregator';
 function nop() {}
 
 const defaultProps = {
+  // data
+  data: defaultDataArrayType,
+
   // color
   colorDomain: null,
   colorRange: defaultColorRange,
-  getColorValue: points => points.length,
-  lowerPercentile: {type: 'number', min: 0, max: 100, value: 0},
-  upperPercentile: {type: 'number', min: 0, max: 100, value: 100},
-  onSetColorDomain: nop,
+  getColorValue: {
+    value: points => points.length,
+    type: 'function',
+    args: [defaultDataType],
+    return: 'number'
+  },
+  lowerPercentile: {value: 0, type: 'number', min: 0, max: 100 },
+  upperPercentile: {value: 100, type: 'number', min: 0, max: 100 },
+  onSetColorDomain: { value: nop, type: 'function', args: [], return: 'void'},
 
   // elevation
   elevationDomain: null,
-  elevationRange: [0, 1000],
-  getElevationValue: points => points.length,
-  elevationLowerPercentile: {type: 'number', min: 0, max: 100, value: 0},
-  elevationUpperPercentile: {type: 'number', min: 0, max: 100, value: 100},
-  elevationScale: 1,
-  onSetElevationDomain: nop,
+  elevationRange: { value: [0, 1000], type: 'fixed-array', shape: ['number', 'number'] },
+  getElevationValue: {
+    value: points => points.length,
+    type: 'function',
+    args: [defaultDataType],
+    return: 'number'
+  },
+  elevationLowerPercentile: {value: 0, type: 'number', min: 0, max: 100},
+  elevationUpperPercentile: { value: 100, type: 'number', min: 0, max: 100},
+  elevationScale: { value: 1, type: 'number' },
+  onSetElevationDomain: { value: nop, type: 'function', args: [], return: 'void' },
 
   // grid
   cellSize: {type: 'number', min: 0, max: 1000, value: 1000},
   coverage: {type: 'number', min: 0, max: 1, value: 1},
-  getPosition: x => x.position,
-  extruded: false,
-  fp64: false,
+  getPosition: {
+    value: x => x.position,
+    type: 'function',
+    args: [defaultDataType],
+    return: {type: 'position', dimensions: 3}
+  },
+  extruded: {type: 'boolean', value: false},
+  fp64: {type: 'boolean', value: false},
 
   // Optional settings for 'lighting' shader module
-  lightSettings: {}
+  lightSettings: defaultLightSettingsType
 };
 
 export default class GridLayer extends CompositeLayer {

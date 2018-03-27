@@ -79,7 +79,13 @@ const {
   MapControllerJS,
 
   EffectManager,
-  Effect
+  Effect,
+
+  // Lifecycle
+  defaultDataType,
+  defaultDataArrayType,
+  defaultLightSettingsType,
+  parsePropTypes,
 } = CoreExperimental;
 
 Object.assign(experimental, {

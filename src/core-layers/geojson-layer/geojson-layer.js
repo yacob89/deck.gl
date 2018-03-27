@@ -19,7 +19,7 @@
 // THE SOFTWARE.
 
 import {CompositeLayer, experimental} from '../../core';
-const {get} = experimental;
+const {get, defaultLightSettingsType} = experimental;
 import ScatterplotLayer from '../scatterplot-layer/scatterplot-layer';
 import PathLayer from '../path-layer/path-layer';
 // Use primitive layer to avoid "Composite Composite" layers for now
@@ -31,35 +31,48 @@ const defaultLineColor = [0x0, 0x0, 0x0, 0xff];
 const defaultFillColor = [0x0, 0x0, 0x0, 0xff];
 
 const defaultProps = {
-  stroked: true,
-  filled: true,
-  extruded: false,
-  wireframe: false,
+  // geojson
+  data: { type: 'unknown' },
 
-  lineWidthScale: 1,
-  lineWidthMinPixels: 0,
-  lineWidthMaxPixels: Number.MAX_SAFE_INTEGER,
-  lineJointRounded: false,
-  lineMiterLimit: 4,
+  stroked: { value: true, type: 'boolean' },
+  filled: { value: true, type: 'boolean' },
+  extruded: { value: false, type: 'boolean' },
+  wireframe: { value: false, type: 'boolean' },
 
-  elevationScale: 1,
+  lineWidthScale: {value: 1, type: 'number', min: 0},
+  lineWidthMinPixels: {value: 0, type: 'number', min: 0},
+  lineWidthMaxPixels: {value: Number.MAX_SAFE_INTEGER, type: 'number', min: 0},
+  lineJointRounded: { value: false, type: 'boolean' },
+  lineMiterLimit: {value: 4, type: 'number', min: 0},
 
-  pointRadiusScale: 1,
-  pointRadiusMinPixels: 0, //  min point radius in pixels
-  pointRadiusMaxPixels: Number.MAX_SAFE_INTEGER, // max point radius in pixels
+  elevationScale: {value: 1, type: 'number', min: 0},
 
-  fp64: false,
+  pointRadiusScale: {value: 1, type: 'number', min: 0},
+  pointRadiusMinPixels: {value: 0, type: 'number', min: 0}, //  min point radius in pixels
+  pointRadiusMaxPixels: {value: Number.MAX_SAFE_INTEGER, type: 'number', min: 0}, // max point radius in pixels
+
+  fp64: { value: false, type: 'boolean' },
 
   // Line and polygon outline color
-  getLineColor: f => get(f, 'properties.lineColor') || defaultLineColor,
+  getLineColor: {
+    value: f => get(f, 'properties.lineColor') || defaultLineColor, type: 'function', args: ['unknown'], return: {type: 'color', model: 'rgba'}
+  },
   // Point and polygon fill color
-  getFillColor: f => get(f, 'properties.fillColor') || defaultFillColor,
+  getFillColor: {
+    value: f => get(f, 'properties.fillColor') || defaultFillColor, type: 'function', args: ['unknown'], return: {type: 'color', model: 'rgba'}
+  },
   // Point radius
-  getRadius: f => get(f, 'properties.radius') || get(f, 'properties.size') || 1,
+  getRadius: {
+    value: f => get(f, 'properties.radius') || get(f, 'properties.size') || 1, type: 'function', args: ['unknown'], return: {type: 'number', min: 0}
+  },
   // Line and polygon outline accessors
-  getLineWidth: f => get(f, 'properties.lineWidth') || 1,
+  getLineWidth: {
+    value: f => get(f, 'properties.lineWidth') || 1, type: 'function', args: ['unknown'], return: {type: 'number', min: 0}
+  },
   // Polygon extrusion accessor
-  getElevation: f => get(f, 'properties.elevation') || 1000,
+  getElevation: {
+    value: f => get(f, 'properties.elevation') || 1000, type: 'function', args: ['unknown'], return: {type: 'number', min: 0}
+  },
 
   subLayers: {
     PointLayer: ScatterplotLayer,
@@ -68,7 +81,7 @@ const defaultProps = {
   },
 
   // Optional settings for 'lighting' shader module
-  lightSettings: {}
+  lightSettings: defaultLightSettingsType
 };
 
 const getCoordinates = f => f.geometry.coordinates;

@@ -29,14 +29,23 @@ import fs from './arc-layer-fragment.glsl';
 
 const DEFAULT_COLOR = [0, 0, 0, 255];
 
-const defaultProps = {
-  strokeWidth: 1,
-  fp64: false,
+const defaultDataType = {
+  type: 'object',
+  properties: {
+    sourcePosition: { type: 'position', dimension: 2 },
+    targetPosition: { type: 'position', dimension: 2 },
+  }
+}
 
-  getSourcePosition: x => x.sourcePosition,
-  getTargetPosition: x => x.targetPosition,
-  getSourceColor: x => x.color || DEFAULT_COLOR,
-  getTargetColor: x => x.color || DEFAULT_COLOR
+const defaultProps = {
+  data: { value: [], type: 'array', element: defaultDataType },
+  strokeWidth: { value: 1, type: 'number' },
+  fp64: { value: false, type: 'boolean' },
+
+  getSourcePosition: { value: x => x.sourcePosition, type: 'function', args: [defaultDataType], return: { type: 'position', dimension: 2 } },
+  getTargetPosition: { value: x => x.targetPosition, type: 'function', args: [defaultDataType], return: { type: 'position', dimension: 2 } },
+  getSourceColor: { value: x => x.color || DEFAULT_COLOR, type: 'color', model: 'rgba' },
+  getTargetColor: { value: x => x.color || DEFAULT_COLOR, type: 'color', model: 'rgba' }
 };
 
 export default class ArcLayer extends Layer {

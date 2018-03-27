@@ -18,7 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {ArcLayer} from 'deck.gl';
+import {ArcLayer, experimental} from 'deck.gl';
+const { defaultDataType, defaultDataArrayType } = experimental;
 
 import arcVertex from './arc-brushing-layer-vertex.glsl';
 import arcFragment from './arc-brushing-layer-fragment.glsl';
@@ -26,14 +27,19 @@ import arcFragment from './arc-brushing-layer-fragment.glsl';
 const defaultProps = {
   ...ArcLayer.defaultProps,
   // show arc if source is in brush
-  brushSource: true,
+  brushSource: {type: 'boolean', value: true},
   // show arc if target is in brush
-  brushTarget: true,
-  enableBrushing: true,
-  getStrokeWidth: d => d.strokeWidth,
+  brushTarget: {type: 'boolean', value: true},
+  enableBrushing: {type: 'boolean', value: true},
+  getStrokeWidth: {
+    value: d => d.strokeWidth,
+    type: 'function',
+    args: [defaultDataType],
+    return: 'number'
+  },
   // brush radius in meters
-  brushRadius: 100000,
-  mousePosition: [0, 0]
+  brushRadius: {type: 'number', value: 100000, min: 0},
+  mousePosition: {type: 'fixed-array', shape: ['number', 'number'], value: [0, 0], min: [0, 0]}
 };
 
 export default class ArcBrushingLayer extends ArcLayer {

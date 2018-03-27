@@ -19,7 +19,7 @@
 // THE SOFTWARE.
 
 import {COORDINATE_SYSTEM, Layer, experimental} from 'deck.gl';
-const {enable64bitSupport, get} = experimental;
+const {enable64bitSupport, get, defaultLightSettingsType} = experimental;
 import {GL, Model, Geometry} from 'luma.gl';
 
 // Polygon geometry generation is managed by the polygon tesselator
@@ -32,16 +32,33 @@ import fs from './solid-polygon-layer-fragment.glsl';
 const defaultLineColor = [0x0, 0x0, 0x0, 0xff];
 const defaultFillColor = [0x0, 0x0, 0x0, 0xff];
 
+const defaultDataType = {
+  // polygons
+  type: 'array',
+  element: {
+    // vertices
+    type: 'array',
+    element: {
+      // [lnt, lat]
+      type: 'position',
+      dimension: 2
+    }
+  }
+}
+
 const defaultProps = {
-  filled: true,
+  // data: complexPolygons
+  data: { value: [], type: 'array', element: defaultDataType },
+
+  filled: {value: true, type: 'boolean'},
   // Whether to extrude
-  extruded: false,
+  extruded: {value: false, type: 'boolean'},
   // Whether to draw a GL.LINES wireframe of the polygon
-  wireframe: false,
-  fp64: false,
+  wireframe: {value: false, type: 'boolean'},
+  fp64: {value: false, type: 'boolean'},
 
   // elevation multiplier
-  elevationScale: 1,
+  elevationScale: { value: 1, type: 'number', min: 0 },
 
   // Accessor for polygon geometry
   getPolygon: f => get(f, 'polygon') || get(f, 'geometry.coordinates'),
@@ -52,7 +69,7 @@ const defaultProps = {
   getLineColor: f => get(f, 'lineColor') || get(f, 'properties.color') || defaultLineColor,
 
   // Optional settings for 'lighting' shader module
-  lightSettings: {}
+  lightSettings: defaultLightSettingsType
 };
 
 // Side model attributes

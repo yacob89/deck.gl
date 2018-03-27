@@ -98,7 +98,9 @@ import {clamp} from './utils/scale-utils';
 import {flatten, countVertices, flattenVertices, fillArray} from './utils/flatten';
 // TODO - just expose as layer methods instead?
 import {enable64bitSupport} from './utils/fp64';
-import {fp64ify, fp64LowPart} from './utils/fp64';
+import { fp64ify, fp64LowPart } from './utils/fp64';
+
+import { defaultDataType, defaultLightSettingsType, parsePropTypes } from './lifecycle/prop-types';
 
 export const experimental = {
   View,
@@ -166,6 +168,11 @@ export const experimental = {
   enable64bitSupport,
   fp64ify,
   fp64LowPart,
+
+  defaultDataType,
+  defaultDataArrayType,
+  defaultLightSettingsType,
+  parsePropTypes,
 
   // DEPRECATED experimantal exports
   DeckGLJS: Deck

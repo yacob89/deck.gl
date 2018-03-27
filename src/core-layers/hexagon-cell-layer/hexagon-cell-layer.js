@@ -33,8 +33,8 @@ const defaultProps = {
   angle: null,
   coverage: {type: 'number', min: 0, max: 1, value: 1},
   elevationScale: {type: 'number', min: 0, value: 1},
-  extruded: true,
-  fp64: false,
+  extruded: {type: 'boolean', value: true},
+  fp64: {type: 'boolean', value: false},
 
   getCentroid: x => x.centroid,
   getColor: x => x.color,

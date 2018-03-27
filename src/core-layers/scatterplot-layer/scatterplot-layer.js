@@ -19,7 +19,7 @@
 // THE SOFTWARE.
 
 import {Layer, experimental} from '../../core';
-const {fp64LowPart, enable64bitSupport} = experimental;
+const {fp64LowPart, enable64bitSupport, defaultDataType, defaultDataArrayType} = experimental;
 import {GL, Model, Geometry} from 'luma.gl';
 
 import vs from './scatterplot-layer-vertex.glsl';
@@ -28,16 +28,32 @@ import fs from './scatterplot-layer-fragment.glsl';
 const DEFAULT_COLOR = [0, 0, 0, 255];
 
 const defaultProps = {
-  radiusScale: 1,
-  radiusMinPixels: 0, //  min point radius in pixels
-  radiusMaxPixels: Number.MAX_SAFE_INTEGER, // max point radius in pixels
-  strokeWidth: 1,
-  outline: false,
-  fp64: false,
+  data: defaultDataArrayType,
+  radiusScale: {value: 1, type: 'number', min: 0},
+  radiusMinPixels: {value: 0, type: 'number', min: 0}, //  min point radius in pixels
+  radiusMaxPixels: {value: Number.MAX_SAFE_INTEGER, type: 'number', min: 0}, // max point radius in pixels
+  strokeWidth: {value: 1, type: 'number', min: 0},
+  outline: {value: false, type: 'boolean'},
+  fp64: {value: false, type: 'boolean'},
 
-  getPosition: x => x.position,
-  getRadius: x => x.radius || 1,
-  getColor: x => x.color || DEFAULT_COLOR
+  getPosition: {
+    value: x => x.position,
+    type: 'function',
+    args: [defaultDataType],
+    return: {type: 'position', dimensions: 3}
+  },
+  getRadius: {
+    value: x => x.radius || 1,
+    type: 'function',
+    args: [defaultDataType],
+    return: 'number'
+  },
+  getColor: {
+    value: x => x.color || DEFAULT_COLOR,
+    type: 'function',
+    args: [defaultDataType],
+    return: {type: 'color', model: 'rgba'}
+  }
 };
 
 export default class ScatterplotLayer extends Layer {
