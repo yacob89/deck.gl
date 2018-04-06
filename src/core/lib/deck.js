@@ -144,7 +144,7 @@ export default class Deck {
     this.stats.timeEnd('deck.setProps');
 
     if (this.controller) {
-      this.controller.setProps(props);
+      this.controller.setProps(Object.assign({}, props, {viewState: this._getViewState()}));
     }
   }
 
@@ -282,6 +282,13 @@ export default class Deck {
     });
   }
 
+  _getViewState() {
+    return Object.assign({}, this.props.viewState || {}, {
+      width: this.width,
+      height: this.height
+    });
+  }
+
   // Callbacks
 
   _onRendererInitialized({gl, canvas}) {
@@ -320,6 +327,9 @@ export default class Deck {
     if (this._checkForCanvasSizeChange()) {
       const {width, height} = this;
       this.layerManager.setParameters({width, height});
+      if (this.controller) {
+        this.controller.setProps({viewState: this._getViewState()});
+      }
       if (this.props.onResize) {
         this.props.onResize({width: this.width, height: this.height});
       }
