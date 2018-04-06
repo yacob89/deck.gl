@@ -125,7 +125,7 @@ export default class ViewportControls {
   /**
    * Extract interactivity options
    */
-  /* eslint-disable complexity */
+  /* eslint-disable complexity, max-statements */
   setOptions(options) {
     const {
       onStateChange = this.onStateChange,
@@ -145,10 +145,15 @@ export default class ViewportControls {
     if ('onViewStateChange' in options) {
       this.onViewStateChange = options.onViewStateChange;
     }
-    this.onStateChange = onStateChange;
-    this.viewportStateProps = options.viewState
-      ? Object.assign({}, options, options.viewState)
-      : options;
+    if ('onStateChange' in options) {
+      this.onStateChange = onStateChange;
+    }
+    if ('viewState' in options) {
+      this.viewportStateProps = Object.assign({}, options, options.viewState);
+    } else {
+      // TODO - deprecated, props on top level
+      this.viewportStateProps = options;
+    }
 
     if (this.eventManager !== eventManager) {
       // EventManager has changed
@@ -174,7 +179,7 @@ export default class ViewportControls {
     this.touchRotate = touchRotate;
     this.keyboard = keyboard;
   }
-  /* eslint-enable complexity */
+  /* eslint-enable complexity, max-statements */
 
   toggleEvents(eventNames, enabled) {
     if (this.eventManager) {

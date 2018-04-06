@@ -284,7 +284,10 @@ export default class LayerManager {
     if (viewState) {
       const viewStateChanged = deepEqual(viewState, this.viewState);
       this.viewState = viewState;
-      this.viewsChanged = true || viewStateChanged;
+      this.viewsChanged = this.viewsChanged || viewStateChanged;
+      if (viewStateChanged) {
+        this.setNeedsRedraw('viewState changed');
+      }
     } else {
       log.warn('viewState is not valid')();
     }
@@ -429,6 +432,10 @@ export default class LayerManager {
     let redraw = this._needsRedraw;
     if (clearRedrawFlags) {
       this._needsRedraw = false;
+    }
+
+    if (this.viewsChanged) {
+      return 'Views changed';
     }
 
     // This layers list doesn't include sublayers, relying on composite layers

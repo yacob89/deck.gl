@@ -16,70 +16,33 @@ const INITIAL_VIEWPORT = {
 
 class App {
   constructor(props) {
-    this.state = {
-      viewport: INITIAL_VIEWPORT,
-      width: 500,
-      height: 500,
-      data: null
-    };
+    this.deckgl = new Deck({
+      width: '100%',
+      height: '100%',
+      initialViewState: INITIAL_VIEWPORT,
+      controller: MapController,
+      layers: []
+    });
 
     fetch(GEOJSON)
       .then(resp => resp.json())
-      .then(data => this.setState({data}));
-
-    window.addEventListener('load', this.onLoad.bind(this));
-    window.addEventListener('resize', this.onResize.bind(this));
+      .then(data => this.updateLayers({data}));
   }
 
-  setState(state) {
-    Object.assign(this.state, state);
-    this.updateLayers();
-  }
-
-  updateLayers() {
-    if (this.deckgl) {
-      this.deckgl.setProps({
-        layers: [
-          new GeoJsonLayer({
-            data: this.state.data,
-            stroked: true,
-            filled: true,
-            lineWidthMinPixels: 2,
-            getLineColor: () => [255, 255, 255],
-            getFillColor: () => [200, 200, 200]
-          })
-        ]
-      });
-    }
-  }
-
-  onResize() {
-    this.setState({
-      width: window.innerWidth,
-      height: window.innerHeight
-    });
-  }
-
-  onViewportChange(viewport) {
-    this.setState({viewport});
-    this.deckgl.setProps(viewport);
-    this.controller.setProps(viewport);
-  }
-
-  onLoad() {
-    this.onResize();
-
-    const {viewport, width, height} = this.state;
-
-    this.deckgl = new Deck({
-      ...viewport,
-      width,
-      height,
-      controller: MapController,
-      onViewportChange: this.onViewportChange.bind(this),
-      layers: []
+  updateLayers({data}) {
+    this.deckgl.setProps({
+      layers: [
+        new GeoJsonLayer({
+          data,
+          stroked: true,
+          filled: true,
+          lineWidthMinPixels: 2,
+          getLineColor: () => [255, 255, 255],
+          getFillColor: () => [200, 200, 200]
+        })
+      ]
     });
   }
 }
 
-new App(); // eslint-disable-line
+window.addEventListener('load', () => new App());

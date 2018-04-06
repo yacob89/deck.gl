@@ -6,27 +6,41 @@ import MapBox from './mapbox';
 const GEOJSON =
   'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_110m_admin_1_states_provinces_shp.geojson'; //eslint-disable-line
 
+const INITIAL_VIEW_STATE = {
+  latitude: 40,
+  longitude: -100,
+  zoom: 3,
+  bearing: 0,
+  pitch: 60
+};
+
 class App {
   constructor(props) {
     this.state = {
-      viewState: {
-        latitude: 40,
-        longitude: -100,
-        zoom: 3,
-        bearing: 0,
-        pitch: 60
-      },
-      width: 500,
-      height: 500,
+      viewState: INITIAL_VIEW_STATE,
       data: null
     };
+
+    const {viewState} = this.state;
+
+    this.map = new MapBox({
+      container: 'map',
+      ...viewState,
+      debug: true
+    });
+
+    this.deck = new Deck({
+      canvas: 'deck',
+      viewState,
+      controller: MapController,
+      onViewStateChange: this.onViewStateChange.bind(this),
+      onResize: this.onResize.bind(this),
+      debug: true
+    });
 
     fetch(GEOJSON)
       .then(resp => resp.json())
       .then(data => this.setState({data}));
-
-    window.addEventListener('load', this.onLoad.bind(this));
-    window.addEventListener('resize', this.onResize.bind(this));
   }
 
   setState(state) {
@@ -35,65 +49,29 @@ class App {
   }
 
   updateLayers() {
-    if (this.deckgl) {
-      this.deckgl.setProps({
-        layers: [
-          new GeoJsonLayer({
-            data: this.state.data,
-            stroked: true,
-            filled: true,
-            lineWidthMinPixels: 2,
-            opacity: 0.4,
-            getLineColor: () => [255, 100, 100],
-            getFillColor: () => [100, 100, 200]
-          })
-        ]
-      });
-    }
-  }
-
-  setProps(props) {
-    this.setState(props);
-    this.deckgl.setProps(props);
-    this.map.setProps(props);
-    this.controller.setProps(props);
-  }
-
-  onResize() {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    this.setProps({width, height});
-  }
-
-  onViewportChange(viewport) {
-    this.setProps(Object.assign({}, viewport, {viewState: viewport}));
-  }
-
-  onLoad() {
-    const {viewState, width, height} = this.state;
-
-    this.map = new MapBox({
-      container: 'map',
-      ...viewState,
-      width,
-      height,
-      debug: true
+    this.deck.setProps({
+      layers: [
+        new GeoJsonLayer({
+          data: this.state.data,
+          stroked: true,
+          filled: true,
+          lineWidthMinPixels: 2,
+          opacity: 0.4,
+          getLineColor: () => [255, 100, 100],
+          getFillColor: () => [100, 100, 200]
+        })
+      ]
     });
+  }
 
-    this.deckgl = new Deck({
-      // TODO EventManager should accept element id
-      /* global document */
-      canvas: document.getElementById('deck'),
-      controller: MapController,
-      onViewportChange: this.onViewportChange.bind(this),
-      viewState,
-      width,
-      height,
-      debug: true
-    });
+  onResize({width, height}) {
+    this.map.setProps({width, height});
+  }
 
-    this.onResize();
+  onViewStateChange({viewState}) {
+    this.map.setProps(viewState);
+    this.deck.setProps({viewState});
   }
 }
 
-new App(); // eslint-disable-line
+window.addEventListener('load', () => new App());
