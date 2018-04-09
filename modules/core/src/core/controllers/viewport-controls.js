@@ -64,6 +64,7 @@ export default class ViewportControls {
     this.events = [];
     this.onViewportChange = null;
     this.onViewStateChange = null;
+    this.onStateChange = null;
 
     this.handleEvent = this.handleEvent.bind(this);
 
