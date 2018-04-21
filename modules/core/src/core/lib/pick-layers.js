@@ -39,6 +39,7 @@ export function pickObject(
     y,
     radius,
     layerFilter,
+    maxCount,
     mode,
     onViewportActive,
     pickingFBO,
@@ -71,6 +72,7 @@ export function pickObject(
       pickingFBO,
       deviceRect,
       layerFilter,
+      maxCount,
       redrawReason: mode
     });
 
@@ -184,9 +186,12 @@ function drawAndSamplePickingBuffer(
     pickingFBO,
     deviceRect,
     layerFilter,
+    maxCount,
     redrawReason
   }
 ) {
+  console.log('drawAndSamplePickingBuffer', 'maxCount=', maxCount, layers);
+  // console.trace();
   assert(deviceRect);
   assert(Number.isFinite(deviceRect.width) && deviceRect.width > 0, '`width` must be > 0');
   assert(Number.isFinite(deviceRect.height) && deviceRect.height > 0, '`height` must be > 0');
@@ -196,23 +201,48 @@ function drawAndSamplePickingBuffer(
     return null;
   }
 
-  drawPickingBuffer(gl, {
-    layers,
-    viewports,
-    onViewportActive,
-    useDevicePixels,
-    pickingFBO,
-    deviceRect,
-    layerFilter,
-    redrawReason
-  });
+  layers.forEach(l => l.updateInstancePickingColors([]));
 
-  // Read from an already rendered picking buffer
-  // Returns an Uint8ClampedArray of picked pixels
-  const {x, y, width, height} = deviceRect;
-  const pickedColors = new Uint8Array(width * height * 4);
-  pickingFBO.readPixels({x, y, width, height, pixelArray: pickedColors});
-  return pickedColors;
+  let allFound = false;
+  const exclude = {};
+  let result = null;
+  while(!allFound && maxCount > 0) {
+    drawPickingBuffer(gl, {
+      layers,
+      viewports,
+      onViewportActive,
+      useDevicePixels,
+      pickingFBO,
+      deviceRect,
+      layerFilter,
+      redrawReason
+    });
+
+    // Read from an already rendered picking buffer
+    // Returns an Uint8ClampedArray of picked pixels
+    const {x, y, width, height} = deviceRect;
+    const pickedColors = new Uint8Array(width * height * 4);
+    pickingFBO.readPixels({x, y, width, height, pixelArray: pickedColors});
+    console.log(pickedColors);
+    result = pickedColors;
+
+    allFound = pickedColors.every(pc => pc === 0);
+    maxCount--;
+
+    if (!allFound) {
+      // exclude found one
+      const layerId = pickedColors[3] - 1;
+      if (exclude[layerId]) {
+        exclude[layerId].push(pickedColors);
+      } else {
+        exclude[layerId] = [pickedColors];
+      }
+      // console.log(exclude);
+      layers[layerId].updateInstancePickingColors(exclude[layerId]);
+    }
+  }
+
+  return result;
 }
 
 // Indentifies which viewport, if any corresponds to x and y

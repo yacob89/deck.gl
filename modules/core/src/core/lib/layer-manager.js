@@ -362,7 +362,7 @@ export default class LayerManager {
   }
 
   // Pick the closest info at given coordinate
-  pickObject({x, y, mode, radius = 0, layerIds, layerFilter}) {
+  pickObject({x, y, mode, radius = 0, layerIds, layerFilter, maxCount}) {
     const {gl, useDevicePixels} = this.context;
 
     const layers = this.getLayers({layerIds});
@@ -375,6 +375,7 @@ export default class LayerManager {
       layers,
       mode,
       layerFilter,
+      maxCount,
       // Injected params
       viewports: this.getViewports(),
       onViewportActive: this._activateViewport.bind(this),
@@ -789,7 +790,7 @@ export default class LayerManager {
   _pickAndCallback(options) {
     const pos = options.event.offsetCenter;
     const radius = this._pickingRadius;
-    const selectedInfos = this.pickObject({x: pos.x, y: pos.y, radius, mode: options.mode});
+    const selectedInfos = this.pickObject({x: pos.x, y: pos.y, radius, mode: options.mode, maxCount: 9});
     if (options.callback) {
       const firstInfo = selectedInfos.find(info => info.index >= 0) || null;
       // As per documentation, send null value when no valid object is picked.

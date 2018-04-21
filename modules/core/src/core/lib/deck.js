@@ -163,9 +163,10 @@ export default class Deck {
 
   // Public API
 
-  pickObject({x, y, radius = 0, layerIds = null}) {
+  pickObject({x, y, radius = 0, layerIds = null, maxCount = 99}) {
+    console.log('pickObject...')
     this.stats.timeStart('deck.pickObject');
-    const selectedInfos = this.layerManager.pickObject({x, y, radius, layerIds, mode: 'query'});
+    const selectedInfos = this.layerManager.pickObject({x, y, radius, layerIds, mode: 'query', maxCount});
     this.stats.timeEnd('deck.pickObject');
     return selectedInfos.length ? selectedInfos[0] : null;
   }
